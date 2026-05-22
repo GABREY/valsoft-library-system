@@ -9,12 +9,23 @@ router = APIRouter(prefix="/api/transactions", tags=["Transactions"])
 @router.get("/my-books")
 def get_my_books(user: dict = Depends(get_current_user)):
     """Returns the books currently borrowed by the authenticated user."""
-    res = supabase.table("transactions")\
-        .select("book_id, books(id, title, author, publication_date)")\
+    trans_res = supabase.table("transactions")\
+        .select("book_id")\
         .eq("user_id", user["id"])\
         .eq("status", "active")\
         .execute()
-    return [item["books"] for item in res.data if item.get("books")]
+
+    if not trans_res.data:
+        return []
+
+    book_ids = [t["book_id"] for t in trans_res.data]
+
+    books_res = supabase.table("books")\
+        .select("id, title, author, publication_date")\
+        .in_("id", book_ids)\
+        .execute()
+
+    return books_res.data or []
 
 @router.post("/checkout")
 def checkout_book(transaction: TransactionCreate, user: dict = Depends(get_current_user)):
