@@ -1,0 +1,26 @@
+# Security (CRITICAL)
+.env
+.env.*
+*.pem
+
+# Virtual Environments
+venv/
+env/
+.venv/
+Pipfile.lock
+
+# Python Cache & Compiled Files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Logs and Databases
+*.log
+*.sqlite3
+*.db
+
+# OS & IDE Settings
+.DS_Store
+.vscode/
+.idea/
