@@ -1,5 +1,7 @@
 # ValLib — AI-Augmented Library Management System
 
+**Live demo: [https://valsoft-library-system.vercel.app](https://valsoft-library-system.vercel.app)**
+
 A full-stack web application that combines a traditional library management system with modern AI capabilities: semantic "vibe" search, automatic keyword and summary generation, and a conversational AI librarian agent powered by Cohere.
 
 ---
@@ -7,23 +9,46 @@ A full-stack web application that combines a traditional library management syst
 ## Table of Contents
 
 1. [Project Overview](#project-overview)
-2. [Tech Stack](#tech-stack)
-3. [Architecture](#architecture)
-4. [Features](#features)
-5. [AI Pipeline](#ai-pipeline)
-6. [User Roles & Access Control](#user-roles--access-control)
-7. [Test Accounts](#test-accounts)
-8. [Database Schema](#database-schema)
-9. [API Reference](#api-reference)
-10. [Project Structure](#project-structure)
-11. [Environment Variables](#environment-variables)
-12. [Running the Project](#running-the-project)
+2. [Deployment](#deployment)
+3. [Tech Stack](#tech-stack)
+4. [Architecture](#architecture)
+5. [Features](#features)
+6. [AI Pipeline](#ai-pipeline)
+7. [User Roles & Access Control](#user-roles--access-control)
+8. [Test Accounts](#test-accounts)
+9. [Database Schema](#database-schema)
+10. [API Reference](#api-reference)
+11. [Project Structure](#project-structure)
+12. [Environment Variables](#environment-variables)
+13. [Running the Project](#running-the-project)
 
 ---
 
 ## Project Overview
 
 ValLib is a library management system built as a Valsoft assignment. It allows users to browse a book catalog, borrow and return books, and interact with an AI librarian chatbot. Staff (librarians and admins) can manage the inventory — adding, editing, and (for admins only) deleting books. When a book is added, AI automatically generates semantic keywords and a vector embedding in the background, enabling intelligent search.
+
+---
+
+## Deployment
+
+| Layer | Platform | URL |
+|---|---|---|
+| Frontend | Vercel | [https://valsoft-library-system.vercel.app](https://valsoft-library-system.vercel.app) |
+| Backend API | Render | [https://valsoft-library-system.onrender.com](https://valsoft-library-system.onrender.com) |
+| Database + Auth | Supabase | Managed PostgreSQL + pgvector |
+
+### Frontend (Vercel)
+The React app is deployed on Vercel with automatic deployments on every push to `main`. The `VITE_API_BASE_URL` environment variable is set to the Render backend URL in the Vercel project settings.
+
+### Backend (Render)
+The FastAPI server runs on Render as a web service. The start command is:
+```
+uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+Environment variables (`SUPABASE_URL`, `SUPABASE_KEY`, `COHERE_API_KEY`) are set in the Render service dashboard. Render deploys automatically from the `main` branch of the GitHub repository.
+
+> **Note:** Render free-tier services spin down after inactivity. The first request after a cold start may take 30–60 seconds.
 
 ---
 
@@ -230,8 +255,9 @@ Any user who signs up without manually assigned metadata defaults to `client`.
 - `POST /api/books/` — requires `admin` or `librarian`
 - `PATCH /api/books/{id}` — requires `admin` or `librarian`
 - `DELETE /api/books/{id}` — requires `admin` only
+- `GET /api/transactions/my-books` — requires any authenticated user
 - `POST /api/transactions/checkout` — requires any authenticated user
-- `POST /api/transactions/return` — requires any authenticated user
+- `POST /api/transactions/return` — `client` can only return their own borrow; `librarian` can return any book; `admin` is blocked (403)
 - `POST /api/agent/chat` — requires any authenticated user
 
 ---
@@ -309,8 +335,9 @@ $$;
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
+| `GET` | `/api/transactions/my-books` | any user | Get books currently borrowed by the logged-in user |
 | `POST` | `/api/transactions/checkout` | any user | Borrow a book `{ "book_id": "..." }` |
-| `POST` | `/api/transactions/return` | any user | Return a book `{ "book_id": "..." }` |
+| `POST` | `/api/transactions/return` | client (own) / librarian (any) | Return a book `{ "book_id": "..." }` — admins cannot return books |
 
 ### Agent — `/api/agent`
 
