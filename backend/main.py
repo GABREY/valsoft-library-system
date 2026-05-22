@@ -17,7 +17,10 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5174",
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "https://valsoft-library-system-mf3io2fr8-gabriel-reyna-s-projects.vercel.app",
+        "https://valsoft-library-system.vercel.app",
+        "https://valsoft-library-system-gabriel-reyna-s-projects.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
