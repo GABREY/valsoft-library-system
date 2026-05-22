@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { fetchAPI } from '../lib/api'
-import { Plus, Trash2, Edit2, X, Loader2, CheckCircle2 } from 'lucide-react'
+import { Plus, Trash2, Edit2, X, Loader2, CheckCircle2, RotateCcw } from 'lucide-react'
 import BookCover from '../components/BookCover'
 import { useAuthStore } from '../store/authStore'
 
 export default function Inventory() {
   const { user } = useAuthStore()
   const isAdmin = user?.app_metadata?.role === 'admin'
+  const isLibrarian = user?.app_metadata?.role === 'librarian'
   const [books, setBooks] = useState([])
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
@@ -45,6 +46,19 @@ export default function Inventory() {
     try {
       await fetchAPI(`/books/${id}`, { method: 'DELETE' })
       setBooks(books.filter(b => b.id !== id))
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  const handleReturnBook = async (id) => {
+    if (!window.confirm('Mark this book as returned and make it available again?')) return
+    try {
+      await fetchAPI('/transactions/return', {
+        method: 'POST',
+        body: JSON.stringify({ book_id: id })
+      })
+      loadInventory()
     } catch (err) {
       alert(err.message)
     }
@@ -169,6 +183,16 @@ export default function Inventory() {
                 </td>
                 <td className="px-5 py-4 text-right">
                   <div className="flex items-center justify-end gap-1">
+                    {/* Librarians can force-return any checked-out book */}
+                    {isLibrarian && book.status === 'checked_out' && (
+                      <button
+                        onClick={() => handleReturnBook(book.id)}
+                        className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        title="Return book (librarian)"
+                      >
+                        <RotateCcw size={15} />
+                      </button>
+                    )}
                     <button
                       onClick={() => setEditModal(book)}
                       className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"

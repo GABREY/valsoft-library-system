@@ -9,8 +9,8 @@ export default function MyBooks() {
 
   const loadBorrowedItems = async () => {
     try {
-      const catalog = await fetchAPI('/books/')
-      setBorrowedBooks(catalog.filter(book => book.status === 'checked_out'))
+      const data = await fetchAPI('/transactions/my-books')
+      setBorrowedBooks(data)
     } catch (err) {
       console.error(err.message)
     } finally {
